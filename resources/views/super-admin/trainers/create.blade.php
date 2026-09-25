@@ -8,7 +8,7 @@
 
 <div class="container py-5">
 
-    <div class="card form-card shadow">
+    <div class="shadow card form-card">
 
 
         <div class="header">
@@ -30,7 +30,7 @@
         </div>
 
 
-        <div class="card-body p-4">
+        <div class="p-4 card-body">
 
 
             @if($errors->any())
@@ -41,7 +41,7 @@
                         Please fix these errors:
                     </strong>
 
-                    <ul class="mb-0 mt-2">
+                    <ul class="mt-2 mb-0">
 
                         @foreach($errors->all() as $error)
 
@@ -111,6 +111,40 @@
                             required>
 
                     </div>
+
+                    <div class="row">
+
+    <div class="mb-3 col-md-6">
+
+        <label class="form-label">
+            Password
+        </label>
+
+        <input
+            type="password"
+            name="password"
+            class="form-control"
+            required
+        >
+
+    </div>
+
+    <div class="mb-3 col-md-6">
+
+        <label class="form-label">
+            Confirm Password
+        </label>
+
+        <input
+            type="password"
+            name="password_confirmation"
+            class="form-control"
+            required
+        >
+
+    </div>
+
+</div>
 
 
                     {{-- Phone --}}
@@ -304,8 +338,7 @@
 
 
                 <div
-                    class="d-flex
-                           justify-content-between">
+                    class="d-flex justify-content-between">
 
                     <a
                         href="{{ route(
@@ -322,7 +355,7 @@
 
                     <button
                         type="submit"
-                        class="btn btn-gold px-4">
+                        class="px-4 btn btn-gold">
 
                         <i class="bi bi-check-lg"></i>
 

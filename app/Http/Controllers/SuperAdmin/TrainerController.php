@@ -8,6 +8,8 @@ use App\Models\Trainer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class TrainerController extends Controller
 {
@@ -55,130 +57,185 @@ class TrainerController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
+   public function store(Request $request)
+{
+    $validated = $request->validate([
 
-            'name' => [
-                'required',
-                'string',
-                'max:255'
-            ],
+        'name' => [
+            'required',
+            'string',
+            'max:255'
+        ],
 
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-                'unique:trainers,email'
-            ],
+        'email' => [
+            'required',
+            'email',
+            'max:255',
+            'unique:trainers,email'
+        ],
 
-            'phone' => [
-                'nullable',
-                'string',
-                'max:20'
-            ],
+        'password' => [
+            'required',
+            'string',
+            'min:8',
+            'confirmed'
+        ],
 
-            'qualification' => [
-                'nullable',
-                'string',
-                'max:255'
-            ],
+        'phone' => [
+            'nullable',
+            'string',
+            'max:20'
+        ],
 
-            'experience' => [
-                'nullable',
-                'string',
-                'max:100'
-            ],
+        'qualification' => [
+            'nullable',
+            'string',
+            'max:255'
+        ],
 
-            'specialization' => [
-                'nullable',
-                'string',
-                'max:255'
-            ],
+        'experience' => [
+            'nullable',
+            'string',
+            'max:100'
+        ],
 
-            'bio' => [
-                'nullable',
-                'string'
-            ],
+        'specialization' => [
+            'nullable',
+            'string',
+            'max:255'
+        ],
 
-            'image' => [
-                'nullable',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:2048'
-            ],
+        'bio' => [
+            'nullable',
+            'string'
+        ],
 
-            'status' => [
-                'required',
-                'boolean'
-            ],
+        'image' => [
+            'nullable',
+            'image',
+            'mimes:jpg,jpeg,png,webp',
+            'max:2048'
+        ],
 
-            'courses' => [
-                'nullable',
-                'array'
-            ],
+        'status' => [
+            'required',
+            'boolean'
+        ],
 
-            'courses.*' => [
-                'exists:courses,id'
-            ],
-        ]);
+        'courses' => [
+            'nullable',
+            'array'
+        ],
+
+        'courses.*' => [
+            'exists:courses,id'
+        ],
+    ]);
 
 
-        $data = [
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'qualification' =>
-                $validated['qualification'] ?? null,
-            'experience' =>
-                $validated['experience'] ?? null,
-            'specialization' =>
-                $validated['specialization'] ?? null,
-            'bio' => $validated['bio'] ?? null,
-            'status' => $validated['status'],
-        ];
+    /*
+    |--------------------------------------------------------------------------
+    | Trainer Data
+    |--------------------------------------------------------------------------
+    */
 
+    $data = [
+        'name' => $validated['name'],
+        'email' => $validated['email'],
+        'phone' => $validated['phone'] ?? null,
+        'qualification' => $validated['qualification'] ?? null,
+        'experience' => $validated['experience'] ?? null,
+        'specialization' => $validated['specialization'] ?? null,
+        'bio' => $validated['bio'] ?? null,
+        'status' => $validated['status'],
+    ];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Image Upload
+    |--------------------------------------------------------------------------
+    */
+
+    if ($request->hasFile('image')) {
+
+        $folder = public_path(
+            'uploads/trainers'
+        );
+
+        if (!File::exists($folder)) {
+
+            File::makeDirectory(
+                $folder,
+                0755,
+                true
+            );
+        }
+
+        $image = $request->file('image');
+
+        $imageName =
+            time() . '_' .
+            Str::random(10) . '.' .
+            $image->getClientOriginalExtension();
+
+        $image->move(
+            $folder,
+            $imageName
+        );
+
+        $data['image'] =
+            'uploads/trainers/' . $imageName;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Create User + Trainer
+    |--------------------------------------------------------------------------
+    */
+
+    DB::transaction(function () use (
+        $validated,
+        $data,
+        &$trainer
+    ) {
 
         /*
         |--------------------------------------------------------------------------
-        | Image Upload
+        | Create Login User
         |--------------------------------------------------------------------------
         */
 
-        if ($request->hasFile('image')) {
-
-            $folder = public_path(
-                'uploads/trainers'
-            );
-
-            if (!File::exists($folder)) {
-                File::makeDirectory(
-                    $folder,
-                    0755,
-                    true
-                );
-            }
-
-            $image = $request->file('image');
-
-            $imageName =
-                time() . '_' .
-                Str::random(10) . '.' .
-                $image->getClientOriginalExtension();
-
-            $image->move(
-                $folder,
-                $imageName
-            );
-
-            $data['image'] =
-                'uploads/trainers/' . $imageName;
-        }
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+            'status' => $validated['status'],
+        ]);
 
 
         /*
         |--------------------------------------------------------------------------
-        | Create Trainer
+        | Assign Trainer Role
+        |--------------------------------------------------------------------------
+        */
+
+        $user->assignRole('Trainer');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Connect User with Trainer
+        |--------------------------------------------------------------------------
+        */
+
+        $data['user_id'] = $user->id;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create Trainer Profile
         |--------------------------------------------------------------------------
         */
 
@@ -194,16 +251,22 @@ class TrainerController extends Controller
         $trainer->courses()->sync(
             $validated['courses'] ?? []
         );
+    });
 
 
-        return redirect()
-            ->route('super-admin.trainers.index')
-            ->with(
-                'success',
-                'Trainer created successfully.'
-            );
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | Redirect
+    |--------------------------------------------------------------------------
+    */
 
+    return redirect()
+        ->route('super-admin.trainers.index')
+        ->with(
+            'success',
+            'Trainer created successfully. Login account also created.'
+        );
+}
 
     /*
     |--------------------------------------------------------------------------

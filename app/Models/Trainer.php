@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Trainer extends Model
 {
     protected $fillable = [
+        'user_id',
         'name',
         'email',
         'phone',
@@ -44,5 +45,10 @@ class Trainer extends Model
     return $this->hasMany(
         Batch::class
     );
+}
+
+public function user()
+{
+    return $this->belongsTo(User::class);
 }
 }
