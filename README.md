@@ -1,3 +1,4 @@
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
@@ -56,3 +57,7 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+=======
+# -TrainingPortal
+Student Registration &amp; Login Course Listing &amp; Course Details Online Course Enrollment Online Payment Integration Student Dashboard Course &amp; Batch Management Student Enrollment Management Payment &amp; Transaction Management Admin Dashboard Course Content Management Student Progress Tracking Search &amp; Filter Courses Role-Based Access
+>>>>>>> cf6be6dba4e5500e9c3d733060ca16390b6f561c
